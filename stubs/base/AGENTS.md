@@ -59,6 +59,8 @@ Arrows point one way only. A Component never imports a Repository. A Repository 
 
 ### Vertical slices
 
+The starter registers no feature modules. The tree below is the shape your first feature takes.
+
 ```
 app/Features/Series/
   SeriesModule.php          # registers hooks

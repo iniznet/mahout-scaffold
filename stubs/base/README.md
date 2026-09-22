@@ -50,7 +50,8 @@ order, and nowhere else. The declared service graph is readable from
 
 A feature is a vertical slice under `app/Features/`: a schema, a module, a
 repository, a mapper, a DTO, surfaces and components. The five questions in
-[AGENTS.md](AGENTS.md) decide every file's home before it is written.
+[AGENTS.md](AGENTS.md) decide every file's home before it is written. The starter
+ships no features; the example below is the first one you would add.
 
 ```php
 final class SeriesModule
