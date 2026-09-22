@@ -14,7 +14,12 @@ use Iniznet\Mahout\Scaffold\Exception\SourceMissing;
  */
 final readonly class ZipBuilder
 {
-    /** The family-standard exclusions; every generated theme ships them. */
+    /**
+     * The family-standard exclusions; every generated theme ships them.
+     * vendor/ is deliberately not excluded: a release tree is staged with
+     * composer install --no-dev --classmap-authoritative first, and the
+     * runtime autoloader ships.
+     */
     public const array DEFAULT_EXCLUDES = [
         '.git',
         'tests',
@@ -22,7 +27,6 @@ final readonly class ZipBuilder
         'docs/planning',
         'node_modules',
         'build',
-        'vendor',
         '.github',
         '.pi',
         '.phpstan-cache',
