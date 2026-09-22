@@ -8,8 +8,12 @@ use Iniznet\Mahout\Scaffold\Drift\DriftCheck;
 use Iniznet\Mahout\Scaffold\Exception\InvalidFlagValue;
 use Iniznet\Mahout\Scaffold\Exception\InvalidInvocation;
 use Iniznet\Mahout\Scaffold\Exception\InvalidSlug;
+use Iniznet\Mahout\Scaffold\Exception\SourceMissing;
 use Iniznet\Mahout\Scaffold\Exception\TargetNotEmpty;
 use Iniznet\Mahout\Scaffold\Generator\Scaffold;
+use Iniznet\Mahout\Scaffold\Generator\Slug;
+use Iniznet\Mahout\Scaffold\Release\Version;
+use Iniznet\Mahout\Scaffold\Release\ZipBuilder;
 
 /**
  * The mahout-scaffold command line.
@@ -39,6 +43,7 @@ final readonly class Application
             return match ($command) {
                 'new' => $this->newCommand(array_slice($arguments, 1)),
                 'drift' => $this->driftCommand($arguments[1] ?? ''),
+                'release' => $this->releaseCommand(array_slice($arguments, 1)),
                 'help', '--help', '-h' => $this->help(),
                 default => $this->unknown($command),
             };
@@ -103,6 +108,47 @@ final readonly class Application
         return 0;
     }
 
+    /**
+     * The release target: one zip from one source tree, the family's
+     * exclusions applied and the caller's added. The refusal to ship a
+     * sourceless or headerless tree is decided before the archive opens.
+     */
+    /**
+     * @param list<string> $arguments
+     */
+    private function releaseCommand(array $arguments): int
+    {
+        $slug = array_shift($arguments);
+
+        if (null === $slug || '' === $slug || str_starts_with($slug, '--')) {
+            throw InvalidInvocation::missingSlug();
+        }
+
+        $options = $this->options($arguments);
+        $source = '' !== ($options['source'] ?? '') ? $options['source'] : $this->cwd();
+
+        if (!is_dir($source)) {
+            throw SourceMissing::directory($source);
+        }
+
+        $version = Version::fromStylesheet($source);
+        $out = '' !== ($options['out'] ?? '') ? $options['out'] : $source.'/build';
+        $extras = '' === ($options['exclude'] ?? '') ? [] : explode(',', (string) $options['exclude']);
+
+        $builder = new ZipBuilder($source, Slug::fromString($slug)->value(), $version->value(), $out);
+        $result = $builder->build(array_map(trim(...), $extras));
+
+        fwrite(STDOUT, sprintf(
+            'Built %s (%d files, theme version %s).%s',
+            $result->path,
+            $result->files,
+            $version->value(),
+            PHP_EOL,
+        ));
+
+        return 0;
+    }
+
     private function driftCommand(string $path): int
     {
         if ('' === $path) {
@@ -119,6 +165,7 @@ final readonly class Application
     {
         fwrite(STDOUT, 'mahout new <slug> [--css=native|tailwind|css-modules] [--js=native|alpine|stimulus|interactivity] [--mode=classic|block] [--namespace=Segment]'.PHP_EOL);
         fwrite(STDOUT, 'mahout drift <theme-dir>   compare a generated theme against stubs/base'.PHP_EOL);
+        fwrite(STDOUT, 'mahout release <slug> [--source=dir] [--out=dir] [--exclude=a,b]  build the theme zip'.PHP_EOL);
 
         return 0;
     }
@@ -126,7 +173,7 @@ final readonly class Application
     private function unknown(string $command): int
     {
         fwrite(STDERR, sprintf('Unknown command: %s%s', '' === $command ? '(none)' : $command, PHP_EOL));
-        fwrite(STDERR, 'Usage: mahout {new|drift|help}'.PHP_EOL);
+        fwrite(STDERR, 'Usage: mahout {new|drift|release|help}'.PHP_EOL);
 
         return 2;
     }
