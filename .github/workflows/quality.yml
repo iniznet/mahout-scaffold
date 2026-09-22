@@ -1,0 +1,57 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: PHP 8.4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: json, hash, mysqli
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Format check
+        run: composer format:check
+
+      - name: PHPStan and architecture rules
+        run: |
+          composer stan
+          composer arch
+
+      - name: Psalm taint
+        run: composer psalm
+
+      - name: Rector dry-run
+        run: composer rector
+
+      - name: Divergence and artifact set
+        run: composer config:check
+
+      - name: PHPUnit
+        run: composer test
+
+      - name: Hook and translation references
+        run: |
+          composer hooks:check
+          composer i18n:check
+
+      - name: Doctor
+        run: composer doctor
+        env:
+          HOWDAH_WP_ROOT: ""

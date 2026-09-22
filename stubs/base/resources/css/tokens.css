@@ -1,0 +1,11 @@
+/*
+ * The theme's design tokens, mirrored from theme.json so the stylesheet and
+ * the block editor agree. Only preset values are mirrored; feature tokens are
+ * declared beside the component that owns them.
+ */
+
+:root {
+	--space-gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+
+	color-scheme: light dark;
+}

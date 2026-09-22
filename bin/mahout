@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * mahout-scaffold entry point.
+ *
+ * This file is a boundary, not analysed source: it reads the process argument
+ * vector and composes the application. When installed as a global composer
+ * package, composer has already loaded the autoloader before including it.
+ */
+
+declare(strict_types=1);
+
+$autoload = __DIR__ . '/../vendor/autoload.php';
+if (is_file($autoload)) {
+	require $autoload;
+}
+
+$application = new Iniznet\Mahout\Scaffold\Console\Application(
+	new Iniznet\Mahout\Scaffold\Generator\Scaffold(),
+	new Iniznet\Mahout\Scaffold\Drift\DriftCheck(),
+);
+
+$arguments = array_slice($argv, 1);
+exit($application->run($arguments));
