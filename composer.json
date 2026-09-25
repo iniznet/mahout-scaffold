@@ -42,7 +42,10 @@
         "arch": "phpstan analyse -c phpstan.neon --no-progress --memory-limit=2G",
         "rector": "rector --dry-run --no-progress-bar",
         "test": "php vendor/bin/phpunit -c phpunit.xml.dist",
-        "accept": "MAHOUT_SCAFFOLD_E2E=all php vendor/bin/phpunit -c phpunit.xml.dist --filter GenerationAcceptanceTest",
+        "accept": [
+            "@putenv MAHOUT_SCAFFOLD_E2E=all",
+            "php vendor/bin/phpunit -c phpunit.xml.dist --filter GenerationAcceptanceTest"
+        ],
         "hooks:check": "php vendor/bin/mahout-devtools hooks:check --source=src --output=docs/reference/hooks.md",
         "hooks:generate": "php vendor/bin/mahout-devtools hooks:generate --source=src --output=docs/reference/hooks.md",
         "i18n:check": "php vendor/bin/mahout-devtools i18n:check --domain=mahout-scaffold --source=src --output=languages/mahout-scaffold.pot",
@@ -53,7 +56,6 @@
             "@format:check",
             "@stan",
             "@psalm",
-            "@arch",
             "@rector",
             "@test",
             "@hooks:check",
@@ -66,5 +68,7 @@
         "branch-alias": {
             "dev-main": "1.0.x-dev"
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
