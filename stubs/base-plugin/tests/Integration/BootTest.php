@@ -56,7 +56,7 @@ final class BootTest extends \WP_UnitTestCase
     public function testTheDeclaredPathsPointAtThisInstallation(): void {
         $paths = Bootstrap::services()->get(\Iniznet\Howdah\Support\PluginPaths::class);
 
-        self::assertStringEndsWith('/howdah.php', $paths->file(), 'the main file is the one core loaded.');
+        self::assertSame('howdah.php', basename($paths->file()), 'the main file is the one core loaded, whatever the separator of the machine that loaded it');
         self::assertFileExists($paths->path('config/content-types.php'));
     }
 }

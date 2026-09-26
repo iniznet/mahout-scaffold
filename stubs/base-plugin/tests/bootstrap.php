@@ -24,7 +24,7 @@ if (!defined('SAVEQUERIES')) {
 
 $testsDir = getenv('WP_TESTS_DIR');
 if (false === $testsDir || '' === $testsDir) {
-    $testsDir = dirname(__DIR__, 3).'/wordpress-develop/tests/phpunit';
+    $testsDir = 'F:/kerjaan 2/WordPress/libraries/wordpress-develop/tests/phpunit';
 }
 
 if (!file_exists($testsDir.'/includes/bootstrap.php')) {
