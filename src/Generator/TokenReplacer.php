@@ -18,11 +18,17 @@ final class TokenReplacer
 {
     private const string DISPLAY_NAME = 'MAHOUT THEME NAME';
 
+    private const string HOST_TYPE = 'MAHOUT HOST TYPE';
+
+    private const string HOST = 'MAHOUT HOST';
+
     public static function replace(string $contents, TokenSet $tokens): string
     {
         return str_replace(
-            ['HOWDAH', 'Howdah', 'howdah', self::DISPLAY_NAME],
-            [$tokens->constantPrefix, $tokens->namespaceRoot, $tokens->slug, $tokens->themeName],
+            // Ordered: the type token is a prefix of the host token, so the longer
+            // one is consumed first and the shorter cannot eat it.
+            ['HOWDAH', 'Howdah', 'howdah', self::DISPLAY_NAME, self::HOST_TYPE, self::HOST],
+            [$tokens->constantPrefix, $tokens->namespaceRoot, $tokens->slug, $tokens->displayName, $tokens->composerType, $tokens->host],
             $contents,
         );
     }

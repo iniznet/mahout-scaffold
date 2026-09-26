@@ -7,8 +7,9 @@ namespace Iniznet\Mahout\Scaffold\Generator;
 use Iniznet\Mahout\Scaffold\Exception\InvalidSlug;
 
 /**
- * The theme slug: the text domain, the hook prefix and the constant prefix all
- * derive from it, so it is validated once and derived from here only.
+ * The host slug: the text domain, the hook prefix and the constant prefix all
+ * derive from it, so it is validated once and derived from here only. A theme and
+ * a plugin are named by the same rule and by the same character set.
  *
  * A value constructor: it holds no state beyond its own value and resolves no
  * collaborator, which is the contract's permitted static shape.
@@ -51,7 +52,7 @@ final readonly class Slug
     }
 
     /** my-theme → My Theme */
-    public function themeName(): string
+    public function displayName(): string
     {
         return ucwords(str_replace('-', ' ', $this->value));
     }

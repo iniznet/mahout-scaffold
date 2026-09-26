@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Iniznet\Mahout\Scaffold\Tests\Unit;
 
 use Iniznet\Mahout\Scaffold\Exception\InvalidFlagValue;
+use Iniznet\Mahout\Scaffold\Exception\InvalidInvocation;
 use Iniznet\Mahout\Scaffold\Exception\StubLayerMissing;
+use Iniznet\Mahout\Scaffold\Generator\Host;
 use Iniznet\Mahout\Scaffold\Generator\StubTree;
 use PHPUnit\Framework\TestCase;
 
@@ -13,10 +15,10 @@ final class StubTreeTest extends TestCase
 {
     public function testTheLayersComposeInCopyOrder(): void
     {
-        $layers = StubTree::fromPackage()->layers('tailwind', 'stimulus', 'block');
+        $layers = StubTree::fromPackage()->layers(Host::Theme, 'tailwind', 'stimulus', 'block');
 
         self::assertSame(
-            ['base', 'presets/css/tailwind', 'presets/js/stimulus', 'modes/block'],
+            ['common', 'base-theme', 'presets/css/tailwind', 'presets/js/stimulus', 'modes/block'],
             array_map(
                 static fn (string $path): string => str_replace(dirname(__DIR__, 2).'/stubs/', '', $path),
                 $layers,
@@ -41,7 +43,7 @@ final class StubTreeTest extends TestCase
         $mode = 'mode' === $flag ? $value : 'classic';
 
         try {
-            StubTree::fromPackage()->layers($css, $js, $mode);
+            StubTree::fromPackage()->layers(Host::Theme, $css, $js, $mode);
 
             self::fail('The generator must refuse an unknown flag value.');
         } catch (InvalidFlagValue $refusal) {
@@ -53,10 +55,50 @@ final class StubTreeTest extends TestCase
         }
     }
 
+    public function testAPluginComposesNoModeLayer(): void
+    {
+        $layers = StubTree::fromPackage()->layers(Host::Plugin, 'native', 'native', null);
+
+        self::assertSame(
+            ['common', 'base-plugin', 'presets/css/native', 'presets/js/native'],
+            array_map(
+                static fn (string $path): string => str_replace(dirname(__DIR__, 2).'/stubs/', '', $path),
+                $layers,
+            ),
+            'a plugin has no hierarchy to overlay, so no mode layer is composed.',
+        );
+    }
+
+    public function testAModePassedToAPluginIsRefusedRatherThanDropped(): void
+    {
+        try {
+            StubTree::fromPackage()->layers(Host::Plugin, 'native', 'native', 'classic');
+        } catch (InvalidInvocation $refusal) {
+            self::assertStringContainsString('template mode', $refusal->getMessage());
+
+            return;
+        }
+
+        self::fail('a flag that changes nothing must be refused, not ignored.');
+    }
+
+    public function testAThemeWithNoModeIsRefusedRatherThanDefaultedInsideTheTree(): void
+    {
+        try {
+            StubTree::fromPackage()->layers(Host::Theme, 'native', 'native', null);
+        } catch (InvalidInvocation $refusal) {
+            self::assertStringContainsString('--mode must name one', $refusal->getMessage());
+
+            return;
+        }
+
+        self::fail('the CLI owns defaults; the layer tree must not invent one.');
+    }
+
     public function testTheAvailableListComesFromTheDirectoriesOnDisk(): void
     {
         try {
-            StubTree::fromPackage()->layers('nope', 'native', 'classic');
+            StubTree::fromPackage()->layers(Host::Theme, 'nope', 'native', 'classic');
 
             self::fail('The generator must refuse an unknown css preset.');
         } catch (InvalidFlagValue $refusal) {
@@ -70,6 +112,6 @@ final class StubTreeTest extends TestCase
 
         $this->expectException(StubLayerMissing::class);
 
-        $tree->layers('native', 'native', 'classic');
+        $tree->layers(Host::Theme, 'native', 'native', 'classic');
     }
 }

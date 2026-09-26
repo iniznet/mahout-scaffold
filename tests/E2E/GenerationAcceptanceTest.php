@@ -7,6 +7,7 @@ namespace Iniznet\Mahout\Scaffold\Tests\E2E;
 use Iniznet\Mahout\Scaffold\Drift\DriftCheck;
 use Iniznet\Mahout\Scaffold\Drift\DriftStatus;
 use Iniznet\Mahout\Scaffold\Exception\TargetNotEmpty;
+use Iniznet\Mahout\Scaffold\Generator\Host;
 use Iniznet\Mahout\Scaffold\Generator\Scaffold;
 use PHPUnit\Framework\TestCase;
 
@@ -51,7 +52,7 @@ final class GenerationAcceptanceTest extends TestCase
 
     public function testAGeneratedThemeCarriesNoScaffoldPresence(): void
     {
-        $result = (new Scaffold())->generate('acceptance-theme', 'native', 'native', 'classic', null, $this->workingDirectory);
+        $result = (new Scaffold())->generate('acceptance-theme', Host::Theme, 'native', 'native', 'classic', null, $this->workingDirectory);
 
         self::assertSame($this->workingDirectory.'/acceptance-theme', $result->target);
         self::assertGreaterThan(0, $result->files);
@@ -130,7 +131,7 @@ final class GenerationAcceptanceTest extends TestCase
         self::assertSame([], $survivors, "tokens survived the generation:\n".implode("\n", $survivors));
 
         // A fresh generation passes its own drift gate.
-        $report = (new DriftCheck())->compare($result->target);
+        $report = (new DriftCheck())->compare($result->target, Host::Theme);
         $drifted = [];
         foreach ($report->files as $file) {
             if (DriftStatus::Identical !== $file->status) {
@@ -143,7 +144,7 @@ final class GenerationAcceptanceTest extends TestCase
 
     public function testAnExplicitNamespaceReachesTheGeneratedAutoloader(): void
     {
-        $result = (new Scaffold())->generate('acceptance-theme', 'tailwind', 'stimulus', 'block', 'House', $this->workingDirectory);
+        $result = (new Scaffold())->generate('acceptance-theme', Host::Theme, 'tailwind', 'stimulus', 'block', 'House', $this->workingDirectory);
 
         $composer = json_decode((string) file_get_contents($result->target.'/composer.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('app/', $composer['autoload']['psr-4']['Iniznet\\House\\']);
@@ -164,11 +165,11 @@ final class GenerationAcceptanceTest extends TestCase
 
     public function testAnOccupiedTargetIsRefusedBeforeAnyFileIsWritten(): void
     {
-        (new Scaffold())->generate('acceptance-theme', 'native', 'native', 'classic', null, $this->workingDirectory);
+        (new Scaffold())->generate('acceptance-theme', Host::Theme, 'native', 'native', 'classic', null, $this->workingDirectory);
 
         $this->expectException(TargetNotEmpty::class);
 
-        (new Scaffold())->generate('acceptance-theme', 'native', 'native', 'classic', null, $this->workingDirectory);
+        (new Scaffold())->generate('acceptance-theme', Host::Theme, 'native', 'native', 'classic', null, $this->workingDirectory);
     }
 
     /**
@@ -183,7 +184,7 @@ final class GenerationAcceptanceTest extends TestCase
      */
     public function testEveryCombinationComposes(string $css, string $js, string $mode): void
     {
-        $result = (new Scaffold())->generate('combination-theme', $css, $js, $mode, null, $this->workingDirectory);
+        $result = (new Scaffold())->generate('combination-theme', Host::Theme, $css, $js, $mode, null, $this->workingDirectory);
 
         self::assertFileExists($result->target.'/composer.json');
         self::assertFileExists($result->target.'/AGENTS.md');
@@ -204,7 +205,7 @@ final class GenerationAcceptanceTest extends TestCase
         }
 
         // A fresh generation of any combination passes its own drift gate.
-        $report = (new DriftCheck())->compare($result->target);
+        $report = (new DriftCheck())->compare($result->target, Host::Theme);
         $drifted = [];
         foreach ($report->files as $file) {
             if (DriftStatus::Identical !== $file->status) {
@@ -245,7 +246,7 @@ final class GenerationAcceptanceTest extends TestCase
 
         try {
             foreach ($this->everyCombination() as [$css, $js, $mode]) {
-                $result = (new Scaffold())->generate('full-acceptance', $css, $js, $mode, null, $acceptance);
+                $result = (new Scaffold())->generate('full-acceptance', Host::Theme, $css, $js, $mode, null, $acceptance);
 
                 $this->installAndCheck($result->target);
 

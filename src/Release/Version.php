@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Iniznet\Mahout\Scaffold\Release;
 
 use Iniznet\Mahout\Scaffold\Exception\SourceMissing;
+use Iniznet\Mahout\Scaffold\Generator\Host;
 
 /**
- * The theme version, read once from the style.css header the release names
- * the artefact after. A stylesheet without a parsable Version header is a
- * refused release, not a guessed one.
+ * The host version, read once from the header of the file core reads identity
+ * from — the stylesheet for a theme, the main plugin file for a plugin. A tree
+ * whose identity file has no parsable Version header is a refused release, not a
+ * guessed one.
  */
 final readonly class Version
 {
@@ -18,19 +20,24 @@ final readonly class Version
     ) {
     }
 
-    /** @throws SourceMissing when the header or the stylesheet is missing */
-    public static function fromStylesheet(string $sourceDirectory): self
+    /**
+     * @param string $slug the host slug, which names a plugin's entry file
+     *
+     * @throws SourceMissing when the header or the identity file is missing
+     */
+    public static function fromIdentity(string $sourceDirectory, Host $host, string $slug): self
     {
-        $style = $sourceDirectory.'/style.css';
+        $file = $host->identityFile($slug);
+        $identity = $sourceDirectory.'/'.$file;
 
-        if (!is_file($style)) {
-            throw SourceMissing::stylesheet($sourceDirectory);
+        if (!is_file($identity)) {
+            throw SourceMissing::identityFile($sourceDirectory, $file);
         }
 
-        $contents = (string) file_get_contents($style);
+        $contents = (string) file_get_contents($identity);
 
         if (1 !== preg_match('/^(?:Version|version):\s*(\S+)/m', $contents, $matches)) {
-            throw SourceMissing::styleHeader($sourceDirectory);
+            throw SourceMissing::versionHeader($sourceDirectory, $file);
         }
 
         return new self($matches[1]);

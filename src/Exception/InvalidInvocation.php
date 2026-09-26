@@ -29,8 +29,25 @@ final class InvalidInvocation extends \InvalidArgumentException implements Scaff
         return new self('A path to a generated theme directory is required: mahout drift <theme-dir>');
     }
 
-    public static function undeclaredIdentity(string $path): self
+    public static function undeclaredIdentity(string $path, string $file): self
     {
-        return new self(sprintf('%s declares no text domain in style.css; the drift gate cannot establish the theme identity', $path));
+        return new self(sprintf('%s declares no text domain in %s; the drift gate cannot establish the host identity', $path, $file));
+    }
+
+    /**
+     * A theme always composes a mode; the default is the CLI's to supply, not the
+     * layer tree's to invent.
+     */
+    public static function modeRequired(string $host): self
+    {
+        return new self(sprintf('--host=%s composes a template mode, so --mode must name one.', $host));
+    }
+
+    /**
+     * The refusal exists because a flag that changes nothing is a flag that lies.
+     */
+    public static function modeWithoutTheme(string $host): self
+    {
+        return new self(sprintf('a template mode is a layer of the hierarchy a theme owns; --host=%s has no part in it, so drop --mode and render through a block or a route', $host));
     }
 }

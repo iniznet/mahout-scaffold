@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Iniznet\Mahout\Scaffold\Tests\Unit;
 
+use Iniznet\Mahout\Scaffold\Generator\Host;
 use Iniznet\Mahout\Scaffold\Generator\Slug;
 use Iniznet\Mahout\Scaffold\Generator\TokenReplacer;
 use Iniznet\Mahout\Scaffold\Generator\TokenSet;
@@ -13,7 +14,7 @@ final class TokenReplacerTest extends TestCase
 {
     private function tokens(): TokenSet
     {
-        return TokenSet::fromSlug(Slug::fromString('my-theme'));
+        return TokenSet::fromSlug(Slug::fromString('my-theme'), Host::Theme);
     }
 
     public function testEveryTokenIsReplaced(): void

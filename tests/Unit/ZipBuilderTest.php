@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Iniznet\Mahout\Scaffold\Tests\Unit;
 
 use Iniznet\Mahout\Scaffold\Exception\SourceMissing;
+use Iniznet\Mahout\Scaffold\Generator\Host;
 use Iniznet\Mahout\Scaffold\Release\Version;
 use Iniznet\Mahout\Scaffold\Release\ZipBuilder;
 use PHPUnit\Framework\TestCase;
@@ -72,7 +73,7 @@ final class ZipBuilderTest extends TestCase
 
     public function testTheVersionComesFromTheStyleHeader(): void
     {
-        self::assertSame('2.4.1', Version::fromStylesheet($this->source)->value());
+        self::assertSame('2.4.1', Version::fromIdentity($this->source, Host::Theme, 'acme-theme')->value());
     }
 
     public function testAMissingVersionHeaderIsARefusal(): void
@@ -82,7 +83,7 @@ final class ZipBuilderTest extends TestCase
         $this->expectException(SourceMissing::class);
         $this->expectExceptionMessage('Version header');
 
-        Version::fromStylesheet($this->source);
+        Version::fromIdentity($this->source, Host::Theme, 'acme-theme');
     }
 
     public function testAMissingSourceTreeIsARefusal(): void

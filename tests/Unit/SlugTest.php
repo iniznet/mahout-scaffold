@@ -55,7 +55,7 @@ final class SlugTest extends TestCase
 
         self::assertSame('MyTheme', $slug->namespaceRoot());
         self::assertSame('MY_THEME', $slug->constantPrefix());
-        self::assertSame('My Theme', $slug->themeName());
+        self::assertSame('My Theme', $slug->displayName());
     }
 
     public function testADigitOnlyTailKeepsItsCase(): void
@@ -64,6 +64,6 @@ final class SlugTest extends TestCase
 
         self::assertSame('Press42', $slug->namespaceRoot());
         self::assertSame('PRESS_42', $slug->constantPrefix());
-        self::assertSame('Press 42', $slug->themeName());
+        self::assertSame('Press 42', $slug->displayName());
     }
 }

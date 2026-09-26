@@ -10,6 +10,7 @@ use Iniznet\Mahout\Scaffold\Exception\InvalidInvocation;
 use Iniznet\Mahout\Scaffold\Exception\InvalidSlug;
 use Iniznet\Mahout\Scaffold\Exception\SourceMissing;
 use Iniznet\Mahout\Scaffold\Exception\TargetNotEmpty;
+use Iniznet\Mahout\Scaffold\Generator\Host;
 use Iniznet\Mahout\Scaffold\Generator\Scaffold;
 use Iniznet\Mahout\Scaffold\Generator\Slug;
 use Iniznet\Mahout\Scaffold\Release\Version;
@@ -42,7 +43,7 @@ final readonly class Application
         try {
             return match ($command) {
                 'new' => $this->newCommand(array_slice($arguments, 1)),
-                'drift' => $this->driftCommand($arguments[1] ?? ''),
+                'drift' => $this->driftCommand(array_slice($arguments, 1)),
                 'release' => $this->releaseCommand(array_slice($arguments, 1)),
                 'help', '--help', '-h' => $this->help(),
                 default => $this->unknown($command),
@@ -75,19 +76,24 @@ final readonly class Application
 
         $options = $this->options($arguments);
 
-        foreach (['css', 'js', 'mode'] as $flag) {
+        foreach (['css', 'js', 'mode', 'host'] as $flag) {
             if ('' === ($options[$flag] ?? null)) {
                 throw InvalidInvocation::emptyFlag($flag);
             }
         }
 
+        // The host defaults to the shape the family ships today; the mode defaults
+        // only inside that host, because a plugin has no hierarchy to overlay and a
+        // default it would silently discard is a lie.
+        $host = Host::fromFlag($options['host'] ?? Host::Theme->value);
         $css = $options['css'] ?? 'native';
         $js = $options['js'] ?? 'native';
-        $mode = $options['mode'] ?? 'classic';
+        $mode = $options['mode'] ?? ($host->usesModes() ? 'classic' : null);
         $namespace = ($options['namespace'] ?? '') !== '' ? $options['namespace'] : null;
 
         $result = $this->scaffold->generate(
             slugValue: $slug,
+            host: $host,
             css: $css,
             js: $js,
             mode: $mode,
@@ -96,11 +102,9 @@ final readonly class Application
         );
 
         fwrite(STDOUT, sprintf(
-            'Generated %s (base + css/%s + js/%s + modes/%s, %d files).%s',
+            'Generated %s (%s, %d files).%s',
             $result->target,
-            $result->layers[0],
-            $result->layers[1],
-            $result->layers[2],
+            implode(' + ', $result->layers),
             $result->files,
             PHP_EOL,
         ));
@@ -131,7 +135,8 @@ final readonly class Application
             throw SourceMissing::directory($source);
         }
 
-        $version = Version::fromStylesheet($source);
+        $host = Host::fromFlag($options['host'] ?? Host::Theme->value);
+        $version = Version::fromIdentity($source, $host, Slug::fromString($slug)->value());
         $out = '' !== ($options['out'] ?? '') ? $options['out'] : $source.'/build';
         $extras = '' === ($options['exclude'] ?? '') ? [] : explode(',', (string) $options['exclude']);
 
@@ -139,9 +144,10 @@ final readonly class Application
         $result = $builder->build(array_map(trim(...), $extras));
 
         fwrite(STDOUT, sprintf(
-            'Built %s (%d files, theme version %s).%s',
+            'Built %s (%d files, %s version %s).%s',
             $result->path,
             $result->files,
+            $host->value,
             $version->value(),
             PHP_EOL,
         ));
@@ -149,13 +155,19 @@ final readonly class Application
         return 0;
     }
 
-    private function driftCommand(string $path): int
+    /**
+     * @param list<string> $arguments
+     */
+    private function driftCommand(array $arguments): int
     {
+        $path = array_shift($arguments) ?? '';
+
         if ('' === $path) {
             throw InvalidInvocation::missingPath();
         }
 
-        $report = $this->drift->compare($path);
+        $options = $this->options($arguments);
+        $report = $this->drift->compare($path, Host::fromFlag($options['host'] ?? Host::Theme->value));
         fwrite(0 === $report->exitCode() ? STDOUT : STDERR, $report->toTable());
 
         return $report->exitCode();
@@ -163,9 +175,10 @@ final readonly class Application
 
     private function help(): int
     {
-        fwrite(STDOUT, 'mahout new <slug> [--css=native|tailwind|css-modules] [--js=native|alpine|stimulus|interactivity] [--mode=classic|block] [--namespace=Segment]'.PHP_EOL);
-        fwrite(STDOUT, 'mahout drift <theme-dir>   compare a generated theme against stubs/base'.PHP_EOL);
-        fwrite(STDOUT, 'mahout release <slug> [--source=dir] [--out=dir] [--exclude=a,b]  build the theme zip'.PHP_EOL);
+        fwrite(STDOUT, 'mahout new <slug> [--host=theme|plugin] [--css=native|tailwind|css-modules] [--js=native|alpine|stimulus|interactivity] [--mode=classic|block] [--namespace=Segment]'.PHP_EOL);
+        fwrite(STDOUT, '  --mode is a layer of the template hierarchy: it applies to --host=theme only.'.PHP_EOL);
+        fwrite(STDOUT, 'mahout drift <host-dir> [--host=theme|plugin]   compare a generated host against stubs/common + stubs/base-<host>'.PHP_EOL);
+        fwrite(STDOUT, 'mahout release <slug> [--host=theme|plugin] [--source=dir] [--out=dir] [--exclude=a,b]  build the installable zip'.PHP_EOL);
 
         return 0;
     }

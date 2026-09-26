@@ -6,6 +6,7 @@ namespace Iniznet\Mahout\Scaffold\Tests\Unit;
 
 use Iniznet\Mahout\Scaffold\Exception\StubUnreadable;
 use Iniznet\Mahout\Scaffold\Generator\Copier;
+use Iniznet\Mahout\Scaffold\Generator\Host;
 use Iniznet\Mahout\Scaffold\Generator\Slug;
 use Iniznet\Mahout\Scaffold\Generator\TokenSet;
 use PHPUnit\Framework\TestCase;
@@ -47,7 +48,7 @@ final class CopierTest extends TestCase
 
     private function tokens(): TokenSet
     {
-        return TokenSet::fromSlug(Slug::fromString('my-theme'));
+        return TokenSet::fromSlug(Slug::fromString('my-theme'), Host::Theme);
     }
 
     public function testItCopiesRecursivelyAndReplacesTokens(): void

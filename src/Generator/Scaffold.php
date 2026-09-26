@@ -12,7 +12,7 @@ use Iniznet\Mahout\Scaffold\Exception\TargetNotEmpty;
 /**
  * The generation: validate everything, then copy the stub layers in order and
  * replace the tokens. Every refusal is decided before the first file is
- * written; a half-written theme is impossible by construction.
+ * written; a half-written host is impossible by construction.
  */
 final readonly class Scaffold
 {
@@ -31,18 +31,19 @@ final readonly class Scaffold
      */
     public function generate(
         string $slugValue,
+        Host $host,
         string $css,
         string $js,
-        string $mode,
+        ?string $mode,
         ?string $namespace,
         string $workingDirectory,
     ): GenerationResult {
         $slug = Slug::fromString($slugValue);
         $tokens = null === $namespace
-            ? TokenSet::fromSlug($slug)
-            : TokenSet::fromSlugWithNamespace($slug, $namespace);
+            ? TokenSet::fromSlug($slug, $host)
+            : TokenSet::fromSlugWithNamespace($slug, $host, $namespace);
 
-        $layers = $this->tree->layers($css, $js, $mode);
+        $layers = $this->tree->layers($host, $css, $js, $mode);
 
         $target = rtrim($workingDirectory, '/\\').'/'.$slug->value();
 
@@ -78,9 +79,16 @@ final readonly class Scaffold
         $files += $this->writePackageManifest($layers, $target, $tokens);
         $files += $this->refreshLockHash($target);
 
+        $names = ['common', $host->baseLayer(), 'css/'.$css, 'js/'.$js];
+
+        if ($host->usesModes() && null !== $mode) {
+            $names[] = 'modes/'.$mode;
+        }
+
         return new GenerationResult(
             target: $target,
-            layers: [$css, $js, $mode],
+            host: $host,
+            layers: $names,
             files: $files,
         );
     }

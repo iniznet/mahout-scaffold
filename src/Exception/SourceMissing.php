@@ -6,7 +6,7 @@ namespace Iniznet\Mahout\Scaffold\Exception;
 
 /**
  * The release's source tree is not what the command needs: the directory is
- * absent, or its style.css carries no parsable Version header, or the output
+ * absent, or its identity file carries no parsable Version header, or the output
  * destination cannot receive the artefact.
  */
 final class SourceMissing extends \RuntimeException implements ScaffoldException
@@ -21,16 +21,17 @@ final class SourceMissing extends \RuntimeException implements ScaffoldException
         return new self(sprintf('The release source directory does not exist: %s.', $path));
     }
 
-    public static function stylesheet(string $directory): self
+    public static function identityFile(string $directory, string $file): self
     {
-        return new self(sprintf('%s/style.css does not exist.', $directory));
+        return new self(sprintf('%s/%s does not exist; that is the file core reads the host headers from.', $directory, $file));
     }
 
-    public static function styleHeader(string $directory): self
+    public static function versionHeader(string $directory, string $file): self
     {
         return new self(sprintf(
-            '%s/style.css carries no parsable Version header.',
+            '%s/%s carries no parsable Version header.',
             $directory,
+            $file,
         ));
     }
 
