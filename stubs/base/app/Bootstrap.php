@@ -36,7 +36,7 @@ final class Bootstrap
      */
     public static function run(): void
     {
-        $kernel = Kernel::inWordPress();
+        $kernel = Kernel::inWordPress(self::class);
 
         $kernel->provider(ThemeProvider::class);
         $kernel->provider(AssetsProvider::class);
