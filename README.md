@@ -70,6 +70,11 @@ reference they make is resolved against the packages on disk and against their o
 tree, both hosts are generated and checked against the gate manifest the family owns,
 and the plugin tree gets the token census the theme has always had.
 
+A starter ships no `composer.lock`, and its manifest names every package it requires as a
+repository: a lock is produced by the first `composer install` over those repositories,
+and a lock resolved by `composer.dev.json` describes one workstation, which is a fact no
+consumer can use. Both rules are gated here, because both were broken here.
+
 `composer accept` is the heavier half: generate a tree, install it over the published
 refs, and run the whole gate set inside it. It costs minutes per combination, so CI
 runs it nightly and on a tag rather than on every commit - nightly catches a package
