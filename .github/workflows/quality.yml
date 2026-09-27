@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
+  schedule:
+    - cron: '17 4 * * *'
 
 permissions:
   contents: read
@@ -55,3 +59,28 @@ jobs:
         run: composer doctor
         env:
           HOWDAH_WP_ROOT: ""
+
+  # The stub trees are compiled, resolved and gate-checked on every commit by
+  # `composer test`; what only a real install can prove is that a generated tree
+  # resolves over *published* refs and passes the gate set it inherits. That costs
+  # minutes per combination and needs no database, so it runs nightly to catch a
+  # package that shipped something its own consumers cannot use, and on a tag,
+  # which is the last moment before a published ref becomes somebody's starter.
+  generated-trees:
+    name: Generated trees
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: json, hash, mysqli
+          tools: composer, node 22
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Generate, install and gate both hosts
+        run: composer accept

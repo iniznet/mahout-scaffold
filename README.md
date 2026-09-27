@@ -63,6 +63,20 @@ COMPOSER=composer.dev.json composer install
 composer check
 ```
 
+A stub tree is the only source in this package that nothing here executes: it runs as
+somebody else's project, or it does not run at all. That is not a reason to leave it
+unverified, so `composer test` treats the trees as source - every family and host
+reference they make is resolved against the packages on disk and against their own
+tree, both hosts are generated and checked against the gate manifest the family owns,
+and the plugin tree gets the token census the theme has always had.
+
+`composer accept` is the heavier half: generate a tree, install it over the published
+refs, and run the whole gate set inside it. It costs minutes per combination, so CI
+runs it nightly and on a tag rather than on every commit - nightly catches a package
+that shipped something its consumers cannot use, and the tag is the last moment
+before a published ref becomes somebody's starter.
+
+
 The acceptance suite that installs a generated theme and runs its full gate
 set is opt-in:
 

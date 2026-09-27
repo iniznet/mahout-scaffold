@@ -22,7 +22,8 @@
         "iniznet/mahout-assets": "^1.0",
         "iniznet/mahout-content": "^1.0",
         "iniznet/mahout-fields": "^1.0",
-        "iniznet/mahout-db": "^1.0"
+        "iniznet/mahout-db": "^1.0",
+        "iniznet/mahout-ui": "^1.0"
     },
     "require-dev": {
         "iniznet/mahout-devtools": "^1.0"
@@ -61,7 +62,6 @@
             "@format:check",
             "@stan",
             "@psalm",
-            "@arch",
             "@rector",
             "@test",
             "@hooks:check",

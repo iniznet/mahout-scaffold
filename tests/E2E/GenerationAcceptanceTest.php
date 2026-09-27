@@ -97,6 +97,7 @@ final class GenerationAcceptanceTest extends TestCase
             'iniznet/mahout-content' => '^1.0',
             'iniznet/mahout-fields' => '^1.0',
             'iniznet/mahout-db' => '^1.0',
+            'iniznet/mahout-ui' => '^1.0',
         ], $composer['require']);
         self::assertSame('iniznet/acceptance-theme', $composer['name']);
         self::assertSame('app/', $composer['autoload']['psr-4']['Iniznet\\AcceptanceTheme\\']);
@@ -257,6 +258,30 @@ final class GenerationAcceptanceTest extends TestCase
         } finally {
             @rmdir($acceptance);
         }
+    }
+
+    /**
+     * The plugin tree, installed and gated. The theme has always had this run and
+     * the plugin has never had any run at all, which is the asymmetry that let a
+     * starter ship a field seam that registered nothing: a plugin's admin screens
+     * are its whole reason to exist.
+     *
+     * One combination rather than twelve: the presets layer CSS and JS over the
+     * same PHP, and it is the PHP that this tree had never executed.
+     */
+    public function testAGeneratedPluginPassesTheFullGateSet(): void
+    {
+        if ('all' !== getenv('MAHOUT_SCAFFOLD_E2E')) {
+            self::markTestSkipped('The full gate run per host is opt-in: composer accept');
+        }
+
+        $result = (new Scaffold())->generate('acceptance-plugin', Host::Plugin, 'native', 'native', null, null, $this->workingDirectory);
+
+        self::assertFileExists($result->target.'/'.Host::Plugin->identityFile('acceptance-plugin'));
+
+        $this->installAndCheck($result->target);
+
+        $this->removeTree($result->target);
     }
 
     private function installAndCheck(string $target): void

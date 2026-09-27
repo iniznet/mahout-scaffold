@@ -48,6 +48,16 @@ final readonly class PluginPaths
     }
 
     /**
+     * One file inside this installation, addressed as a URL. The package's stylesheet
+     * is served from here, and only this object can name it: `plugin_dir_url()` takes
+     * the main plugin file, which nothing else holds.
+     */
+    public function url(string $relative): string
+    {
+        return \rtrim(\plugin_dir_url($this->file), '/\\').'/'.\ltrim($relative, '/\\');
+    }
+
+    /**
      * The build directory's URL, without its trailing slash: the base the assets
      * package prefixes manifest entries with.
      */

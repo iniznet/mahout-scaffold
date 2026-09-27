@@ -18,7 +18,7 @@ use Iniznet\Howdah\Providers\ContentProvider;
 use Iniznet\Howdah\Providers\EditorProvider;
 use Iniznet\Howdah\Providers\ThemeProvider;
 use Iniznet\Howdah\Render\Document;
-use Iniznet\Howdah\Support\ClassResolver;
+use Iniznet\Mahout\Ui\ClassResolver;
 use Iniznet\Mahout\Assets\AssetsProvider as AssetsPackageProvider;
 use Iniznet\Mahout\Content\ContentProvider as ContentPackageProvider;
 use Iniznet\Mahout\Db\DbProvider;

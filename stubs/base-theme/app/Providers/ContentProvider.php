@@ -7,6 +7,7 @@ namespace Iniznet\Howdah\Providers;
 use Iniznet\Howdah\Exception\InvalidContentDeclaration;
 use Iniznet\Howdah\Support\Hooks;
 use Iniznet\Mahout\Content\Contracts\Registrar;
+use Iniznet\Mahout\Content\PostReader;
 use Iniznet\Mahout\Content\PostType;
 use Iniznet\Mahout\Content\RestRoute;
 use Iniznet\Mahout\Content\Taxonomy;
@@ -26,6 +27,14 @@ final class ContentProvider implements ServiceProvider
 
     public function register(Container $container): void
     {
+        // Declared in register(), not boot(): a feature's module resolves its
+        // collaborators during its own register pass, and the kernel's order is
+        // providers register, modules register, providers boot, modules boot. A
+        // service declared in a boot pass is invisible to every module in the
+        // process, which is the failure a first feature discovers only when it
+        // asks for a reader the composition root never named.
+        $container->set(new PostReader());
+
         $declarations = require dirname(__DIR__, 2).'/config/content-types.php';
 
         if (!is_array($declarations)) {
