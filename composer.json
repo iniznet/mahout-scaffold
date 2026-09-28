@@ -23,7 +23,7 @@
         "php": ">=8.4"
     },
     "require-dev": {
-        "iniznet/mahout-devtools": "^1.0"
+        "iniznet/mahout-devtools": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -52,8 +52,8 @@
             "@putenv MAHOUT_SCAFFOLD_E2E=all",
             "php vendor/bin/phpunit -c phpunit.xml.dist --filter GenerationAcceptanceTest"
         ],
-        "hooks:check": "php vendor/bin/mahout-devtools hooks:check --source=src --output=docs/reference/hooks.md",
-        "hooks:generate": "php vendor/bin/mahout-devtools hooks:generate --source=src --output=docs/reference/hooks.md",
+        "hooks:check": "php vendor/bin/mahout-devtools hooks:check --source=src --outdir=docs/reference",
+        "hooks:generate": "php vendor/bin/mahout-devtools hooks:generate --source=src --outdir=docs/reference",
         "i18n:check": "php vendor/bin/mahout-devtools i18n:check --domain=mahout-scaffold --source=src --output=languages/mahout-scaffold.pot",
         "i18n:generate": "php vendor/bin/mahout-devtools i18n:generate --domain=mahout-scaffold --source=src --output=languages/mahout-scaffold.pot",
         "doctor": "php vendor/bin/mahout-devtools doctor",
