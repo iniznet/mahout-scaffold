@@ -6,15 +6,37 @@
  *
  * This file is a boundary, not analysed source: it reads the process argument
  * vector and composes the application. When installed as a global composer
- * package, composer has already loaded the autoloader before including it.
+ * package must locate its own autoloader: Composer's generated proxy in
+ * vendor/bin only includes this file and loads nothing, and assuming otherwise looked
+ * true while the packages were symlinked path repositories, because __DIR__ then
+ * resolved into this package's own development vendor.
  */
 
 declare(strict_types=1);
 
-$autoload = __DIR__ . '/../vendor/autoload.php';
-if (is_file($autoload)) {
-	require $autoload;
+$candidates = [
+	__DIR__ . '/../../../autoload.php',
+	getcwd() . '/vendor/autoload.php',
+	__DIR__ . '/../vendor/autoload.php',
+];
+
+$loaded = null;
+
+foreach ($candidates as $candidate) {
+	if (is_file($candidate)) {
+		$loaded = $candidate;
+
+		break;
+	}
 }
+
+if (null === $loaded) {
+	fwrite(STDERR, 'mahout-scaffold could not find an autoloader; run it from a project that requires the package' . PHP_EOL);
+
+	exit(1);
+}
+
+require $loaded;
 
 $application = new Iniznet\Mahout\Scaffold\Console\Application(
 	new Iniznet\Mahout\Scaffold\Generator\Scaffold(),
